@@ -250,6 +250,64 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsDataURL(file);
   });
 
-  // ... aquí puedes agregar lógica extra para regiones, compartir, cierre sesión, cambiar cuenta, etc.
-});
+  // Regiones según país
+  const regionsByCountry = {
+    "Guatemala": [
+      "Alta Verapaz", "Baja Verapaz", "Chimaltenango", "Chiquimula", "Petén",
+      "El Progreso", "Escuintla", "Guatemala", "Huehuetenango", "Izabal",
+      "Jalapa", "Jutiapa", "Quetzaltenango", "Quiché", "Retalhuleu", "Sacatepéquez",
+      "San Marcos", "Santa Rosa", "Sololá", "Suchitepéquez", "Totonicapán",
+      "Zacapa"
+    ],
+    "México": [],
+    "El Salvador": [],
+    "Honduras": []
+  };
 
+  function populateRegions(country) {
+    regionSelect.innerHTML = "";
+    if (!country || !regionsByCountry[country] || regionsByCountry[country].length === 0) {
+      regionSelect.disabled = true;
+      regionSelect.innerHTML = '<option>No hay regiones disponibles</option>';
+      return;
+    }
+    regionSelect.disabled = false;
+    regionsByCountry[country].forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r;
+      regionSelect.appendChild(opt);
+    });
+  }
+
+  countrySelect.addEventListener("change", () => {
+    populateRegions(countrySelect.value);
+  });
+
+  // Botones acción de configuración y cierre de sesión
+  termsBtn.addEventListener("click", () => {
+    alert("Aquí irían los términos y políticas.");
+  });
+  aboutBtn.addEventListener("click", () => {
+    alert("Mano a Mano v1.0 - App de intercambio sin dinero.");
+  });
+  shareBtn.addEventListener("click", () => {
+    alert("¡Comparte Mano a Mano con tus amigos!");
+  });
+  changeAccountBtn.addEventListener("click", () => {
+    const confirmed = confirm('¿Seguro que quieres cambiar de cuenta? Se cerrará la sesión actual.');
+    if (confirmed) {
+      mainApp.style.display = "none";
+      welcomeScreen.style.display = "flex";
+      alert('Has cerrado sesión. Por favor ingresa con otra cuenta.');
+    }
+  });
+  logoutBtn.addEventListener("click", () => {
+    const confirmed = confirm('¿Seguro que quieres cerrar sesión?');
+    if (confirmed) {
+      mainApp.style.display = "none";
+      welcomeScreen.style.display = "flex";
+      alert('Sesión cerrada.');
+    }
+  });
+});

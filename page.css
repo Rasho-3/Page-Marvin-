@@ -330,7 +330,7 @@ button {
 }
 
 #ageModal input[type="number"]:focus {
-  border-color: #2ecc71; /* verde menta */
+  border-color: #2ecc71;
   outline: none;
 }
 
@@ -429,11 +429,11 @@ button {
     align-items: flex-start;
     padding: 1rem;
   }
-  
+
   .app-title {
     font-size: 1.5rem;
   }
-  
+
   .app-subtitle {
     font-size: 0.8rem;
     margin-top: 4px;
