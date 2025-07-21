@@ -52,11 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Camisa azul", category: "Ropa", image: "camisa azul.png" },
     { name: "Libro: El Quijote", category: "Libros", image: "libro el quijote.png" },
     { name: "Muñeca de trapo", category: "Juguetes", image: "muñeca de trapo.png" },
-    { name: "Auriculares inalámbricos", category: "Electrónica", image: "auriculares inalámbricos.png" },
+    { name: "Auriculares inalámbricos", category: "Electrónica", image: "auriculares inalambricos.png" },
     { name: "Bolso de cuero", category: "Accesorios", image: "bolso de cuero.png" },
     { name: "Reloj de pulsera", category: "Accesorios", image: "reloj de pulsera.png" },
     { name: "Mesa de comedor", category: "Muebles", image: "mesa de comedor.png" },
-    { name: "Taza de cerámica", category: "Cocina", image: "taza de cerámica.png" },
+    { name: "Taza de cerámica", category: "Cocina", image: "taza de ceramica.png" },
     { name: "Zapatos deportivos", category: "Zapatos", image: "zapatos deportivos.png" }
   ];
 
