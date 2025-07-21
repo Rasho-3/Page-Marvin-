@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // ELEMENTOS
+  // Elementos básicos y modales
   const ageModal = document.getElementById("ageModal");
   const ageInput = document.getElementById("ageInput");
   const ageConfirmBtn = document.getElementById("ageConfirmBtn");
@@ -8,6 +8,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const welcomeScreen = document.getElementById("welcomeScreen");
   const enterAppBtn = document.getElementById("enterAppBtn");
   const mainApp = document.getElementById("mainApp");
+
+  const loginSection = document.getElementById("loginSection");
+  const loginForm = document.getElementById("loginForm");
+  const loginEmail = document.getElementById("loginEmail");
+  const loginPassword = document.getElementById("loginPassword");
+
+  const userInfo = document.getElementById("userInfo");
+  const userEmailDisplay = document.getElementById("userEmailDisplay");
+  const logoutBtn = document.getElementById("logoutBtn");
 
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsModal = document.getElementById("settingsModal");
@@ -45,9 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const aboutBtn = document.getElementById("aboutBtn");
   const shareBtn = document.getElementById("shareBtn");
   const changeAccountBtn = document.getElementById("changeAccountBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
+  const logoutBtnConfig = document.getElementById("logoutBtn");
 
-  // Productos con imágenes locales (nombres en minúsculas)
+  // Datos de productos con imágenes locales
   let items = [
     { name: "Camisa azul", category: "Ropa", image: "camisa azul.png" },
     { name: "Libro: El Quijote", category: "Libros", image: "libro el quijote.png" },
@@ -60,8 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Zapatos deportivos", category: "Zapatos", image: "zapatos deportivos.png" }
   ];
 
+  // Estado carrito
   let cart = [];
 
+  // Función para mostrar catálogo filtrado por categoría
   function renderCatalog(filter = "") {
     catalog.innerHTML = "";
     const filtered = items.filter(item => !filter || item.category === filter);
@@ -77,9 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h4>${item.name}</h4>
         <p>${item.category}</p>
       `;
-      el.addEventListener("click", () => {
-        addToCart(item);
-      });
+      el.addEventListener("click", () => addToCart(item));
       catalog.appendChild(el);
     });
   }
@@ -110,11 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function removeFromCart(index) {
-    cart.splice(index, 1);
-    renderCart();
-  }
-
   function showModal(modal) {
     modal.style.display = "flex";
   }
@@ -123,6 +127,186 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "none";
   }
 
+  // Ajustes (gear) boton: mostrar/ocultar modal ajustes
+  settingsBtn.addEventListener("click", () => {
+    if (settingsModal.style.display === "flex") {
+      hideModal(settingsModal);
+    } else {
+      [addModal, cartModal, profileModal, termsModal].forEach(m => hideModal(m));
+      showModal(settingsModal);
+    }
+  });
+
+  closeSettings.addEventListener("click", () => {
+    hideModal(settingsModal);
+  });
+
+  // Navegación inferior y scroll para categorías
+  navButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      navButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const section = btn.dataset.section;
+      [settingsModal, addModal, cartModal, profileModal, termsModal].forEach(m => hideModal(m));
+      if (section === "home") renderCatalog();
+      if (section === "categories") document.querySelector(".categories").scrollIntoView({behavior:"smooth"});
+      if (section === "add") showModal(addModal);
+      if (section === "cart") {
+        showModal(cartModal);
+        renderCart();
+      }
+      if (section === "profile") showModal(profileModal);
+    });
+  });
+
+  // Botones cerrar modales con X
+  document.querySelectorAll(".close-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const modal = btn.closest(".modal-overlay");
+      if (modal) hideModal(modal);
+    });
+  });
+
+  // Filtro categorías
+  categoryButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      categoryButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderCatalog(btn.dataset.cat);
+    });
+  });
+
+  // Formulario publicar objeto
+  addForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("itemName").value.trim();
+    const category = document.getElementById("itemCategory").value;
+    const fileInput = document.getElementById("itemImage");
+    if (!name || !category || fileInput.files.length === 0) {
+      alert("Completa todos los campos para publicar un objeto.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      items.push({ name, category, image: reader.result });
+      renderCatalog(category);
+      hideModal(addModal);
+      addForm.reset();
+      alert("Objeto publicado correctamente.");
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  });
+
+  // Foto perfil preview
+  profilePhotoInput.addEventListener("change", () => {
+    const file = profilePhotoInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      profilePhotoPreview.src = e.target.result;
+      profilePhotoPreview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Eliminar item carrito
+  cartItemsContainer.addEventListener("click", e => {
+    if (e.target.classList.contains("remove-from-cart")) {
+      const index = parseInt(e.target.dataset.index, 10);
+      if (!isNaN(index)) {
+        cart.splice(index, 1);
+        renderCart();
+      }
+    }
+  });
+
+  // Cambio región por país
+  countrySelect.addEventListener("change", () => {
+    populateRegions(countrySelect.value);
+  });
+
+  // Población idiomas
+  ["es", "en"].forEach(code => {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = code === "es" ? "Español" : "English";
+    languageSelect.appendChild(opt);
+  });
+  languageSelect.value = "es";
+  updateLanguage(languageSelect.value);
+  languageSelect.addEventListener("change", () => {
+    updateLanguage(languageSelect.value);
+  });
+
+  // Manejo términos y otros botones del modal configuración
+  termsBtn.addEventListener("click", () => showModal(termsModal));
+  closeTermsBtn.addEventListener("click", () => hideModal(termsModal));
+  aboutBtn.addEventListener("click", () => alert("Mano a Mano v1.0 - App de intercambio sin dinero."));
+  shareBtn.addEventListener("click", () => alert("¡Comparte Mano a Mano con tus amigos!"));
+  changeAccountBtn.addEventListener("click", () => {
+    if (confirm("¿Seguro que quieres cambiar de cuenta? Se cerrará la sesión actual.")) {
+      mainApp.style.display = "none";
+      welcomeScreen.style.display = "flex";
+      loginSection.style.display = "flex";
+      userInfo.style.display = "none";
+      alert("Has cerrado sesión. Por favor, ingresa con otra cuenta.");
+    }
+  });
+  logoutBtnConfig.addEventListener("click", () => {
+    if (confirm("¿Seguro que quieres cerrar sesión?")) {
+      mainApp.style.display = "none";
+      welcomeScreen.style.display = "flex";
+      loginSection.style.display = "flex";
+      userInfo.style.display = "none";
+      alert("Sesión cerrada.");
+    }
+  });
+
+  // Verificación de edad
+  ageConfirmBtn.addEventListener("click", () => {
+    const age = parseInt(ageInput.value, 10);
+    if (!isNaN(age) && age >= 15) {
+      ageModal.style.display = "none";
+      welcomeScreen.style.display = "flex";
+      mainApp.style.display = "block";
+      loginSection.style.display = "flex";
+      userInfo.style.display = "none";
+    } else {
+      alert("Debes tener al menos 15 años para usar la aplicación.");
+    }
+  });
+
+  ageCancelBtn.addEventListener("click", () => {
+    alert("No puedes usar la app si no cumples la edad mínima.");
+    window.location.reload();
+  });
+
+  // Pantalla bienvenida y entrada a la app
+  enterAppBtn.addEventListener("click", () => {
+    welcomeScreen.style.display = "none";
+    mainApp.style.display = "flex";
+    renderCatalog();
+  });
+
+  // Login en header
+  loginForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const emailValue = loginEmail.value.trim();
+    if (emailValue) {
+      loginSection.style.display = "none";
+      userEmailDisplay.textContent = emailValue;
+      userInfo.style.display = "flex";
+      loginEmail.value = "";
+      loginPassword.value = "";
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    userInfo.style.display = "none";
+    loginSection.style.display = "flex";
+  });
+
+  // Función para poblar regiones según país
   function populateRegions(country) {
     const regionsByCountry = {
       "Guatemala": [
@@ -152,7 +336,6 @@ document.addEventListener("DOMContentLoaded", () => {
         "Santa Bárbara", "Valle", "Yoro"
       ]
     };
-
     regionSelect.innerHTML = "";
     if (!country || !regionsByCountry[country]) {
       regionSelect.disabled = true;
@@ -168,6 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Traducciones (si las usas)
   function updateLanguage(lang) {
     const translations = {
       es: {
@@ -203,181 +387,21 @@ document.addEventListener("DOMContentLoaded", () => {
         categoriesNav: "Categories",
       }
     };
-
     const t = translations[lang];
-
     document.querySelector(".welcome-phrase").textContent = t.welcomePhrase;
     enterAppBtn.textContent = t.enterButton;
     document.querySelector(".app-title").textContent = t.appTitle;
     document.querySelector(".app-subtitle").textContent = t.appSubtitle;
-
     const categoryBtns = document.querySelectorAll(".cat-btn");
     categoryBtns.forEach((btn, i) => {
       btn.textContent = t.categories[i];
     });
-
     document.querySelector("[data-section='home'] span").textContent = t.home;
     document.querySelector("[data-section='add'] span").textContent = t.publish;
     document.querySelector("[data-section='cart'] span").textContent = t.cart;
     document.querySelector("[data-section='categories'] span").textContent = t.categoriesNav;
     document.querySelector("#profileBtn span").textContent = t.profile;
-
     document.querySelector("#termsModal h2").textContent = t.termsAndPolicies;
   }
-
-  // EVENTOS
-
-  ageConfirmBtn.addEventListener("click", () => {
-    const age = parseInt(ageInput.value, 10);
-    if (!isNaN(age) && age >= 15) {
-      hideModal(ageModal);
-      welcomeScreen.style.display = "flex";
-    } else {
-      alert("Debes tener al menos 15 años para usar la aplicación.");
-    }
-  });
-
-  ageCancelBtn.addEventListener("click", () => {
-    alert("No puedes usar la app si no cumples la edad mínima.");
-    window.location.reload();
-  });
-
-  enterAppBtn.addEventListener("click", () => {
-    welcomeScreen.style.display = "none";
-    mainApp.style.display = "flex";
-    renderCatalog();
-  });
-
-  navButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      navButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const section = btn.dataset.section;
-      [settingsModal, addModal, cartModal, profileModal, termsModal].forEach(m => hideModal(m));
-      if (section === "home") renderCatalog();
-      if (section === "categories") document.querySelector(".categories").scrollIntoView({behavior:"smooth"});
-      if (section === "add") showModal(addModal);
-      if (section === "cart") {
-        showModal(cartModal);
-        renderCart();
-      }
-      if (section === "profile") showModal(profileModal);
-    });
-  });
-
-  document.querySelectorAll(".close-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const modal = btn.closest(".modal-overlay");
-      if(modal) hideModal(modal);
-    });
-  });
-
-  categoryButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      categoryButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      renderCatalog(btn.dataset.cat);
-    });
-  });
-
-  addForm.addEventListener("submit", e => {
-    e.preventDefault();
-    const name = document.getElementById("itemName").value.trim();
-    const category = document.getElementById("itemCategory").value;
-    const fileInput = document.getElementById("itemImage");
-    if (!name || !category || fileInput.files.length === 0) {
-      alert("Completa todos los campos para publicar un objeto.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      items.push({ name, category, image: reader.result });
-      renderCatalog(category);
-      hideModal(addModal);
-      addForm.reset();
-      alert("Objeto publicado correctamente.");
-    };
-    reader.readAsDataURL(fileInput.files[0]);
-  });
-
-  profilePhotoInput.addEventListener("change", () => {
-    const file = profilePhotoInput.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      profilePhotoPreview.src = e.target.result;
-      profilePhotoPreview.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-  });
-
-  cartItemsContainer.addEventListener("click", e => {
-    if (e.target.classList.contains("remove-from-cart")) {
-      const index = parseInt(e.target.dataset.index, 10);
-      if (!isNaN(index)) {
-        cart.splice(index, 1);
-        renderCart();
-      }
-    }
-  });
-
-  countrySelect.addEventListener("change", () => {
-    populateRegions(countrySelect.value);
-  });
-
-  ["es", "en"].forEach(code => {
-    const opt = document.createElement("option");
-    opt.value = code;
-    opt.textContent = code === "es" ? "Español" : "English";
-    languageSelect.appendChild(opt);
-  });
-
-  languageSelect.value = "es";
-  updateLanguage(languageSelect.value);
-  languageSelect.addEventListener("change", () => {
-    updateLanguage(languageSelect.value);
-  });
-
-  settingsBtn.addEventListener("click", () => {
-    showModal(settingsModal);
-  });
-
-  closeSettings.addEventListener("click", () => {
-    hideModal(settingsModal);
-  });
-
-  termsBtn.addEventListener("click", () => {
-    showModal(termsModal);
-  });
-
-  closeTermsBtn.addEventListener("click", () => {
-    hideModal(termsModal);
-  });
-
-  aboutBtn.addEventListener("click", () => {
-    alert("Mano a Mano v1.0 - App de intercambio sin dinero.");
-  });
-
-  shareBtn.addEventListener("click", () => {
-    alert("¡Comparte Mano a Mano con tus amigos!");
-  });
-
-  changeAccountBtn.addEventListener("click", () => {
-    const confirmed = confirm("¿Seguro que quieres cambiar de cuenta? Se cerrará la sesión actual.");
-    if(confirmed) {
-      mainApp.style.display = "none";
-      welcomeScreen.style.display = "flex";
-      alert("Has cerrado sesión. Por favor, ingresa con otra cuenta.");
-    }
-  });
-
-  logoutBtn.addEventListener("click", () => {
-    const confirmed = confirm("¿Seguro que quieres cerrar sesión?");
-    if(confirmed) {
-      mainApp.style.display = "none";
-      welcomeScreen.style.display = "flex";
-      alert("Sesión cerrada.");
-    }
-  });
 
 });
